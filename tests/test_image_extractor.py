@@ -66,3 +66,23 @@ class TestParseDataUri:
         
         with pytest.raises(ValueError, match="not an image"):
             parse_data_uri("data:text/plain;base64,some-data")
+    
+    def test_missing_base64_marker(self):
+        """Test data URI without ;base64 marker."""
+        with pytest.raises(ValueError, match=";base64"):
+            parse_data_uri("data:image/png,abc")
+    
+    def test_empty_base64_data(self):
+        """Test data URI with empty base64 data."""
+        with pytest.raises(ValueError, match="empty"):
+            parse_data_uri("data:image/png;base64,")
+    
+    def test_none_input(self):
+        """Test None input raises ValueError."""
+        with pytest.raises(ValueError, match="non-empty string"):
+            parse_data_uri(None)
+    
+    def test_missing_comma_separator(self):
+        """Test data URI without comma separator."""
+        with pytest.raises(ValueError, match="missing comma separator"):
+            parse_data_uri("data:image/png;base64")

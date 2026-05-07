@@ -34,6 +34,9 @@ def parse_data_uri(data_uri: str) -> tuple[str, str]:
     Raises:
         ValueError: If data URI format is invalid or not an image
     """
+    if not isinstance(data_uri, str) or not data_uri:
+        raise ValueError("Invalid data URI: must be a non-empty string")
+    
     if not data_uri.startswith("data:"):
         raise ValueError("Invalid data URI: must start with 'data:'")
     
@@ -43,6 +46,12 @@ def parse_data_uri(data_uri: str) -> tuple[str, str]:
     
     header = parts[0]
     b64_data = parts[1]
+    
+    if ";base64" not in header:
+        raise ValueError("Invalid data URI: must contain ';base64' marker")
+    
+    if not b64_data:
+        raise ValueError("Invalid data URI: base64 data is empty")
     
     if not header.startswith("data:image/"):
         raise ValueError(f"Invalid data URI: '{header}' is not an image type")
