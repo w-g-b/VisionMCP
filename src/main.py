@@ -74,6 +74,8 @@ def create_app() -> FastMCP:
             return vision.call_model(messages)
         except (FileNotFoundError, ValueError, RuntimeError) as e:
             return f"Error: {e}"
+        except Exception as e:
+            return f"Error: {e}"
 
     @mcp.tool()
     def ask_image(
@@ -103,6 +105,8 @@ def create_app() -> FastMCP:
             )
             return vision.call_model(messages)
         except (FileNotFoundError, ValueError, RuntimeError) as e:
+            return f"Error: {e}"
+        except Exception as e:
             return f"Error: {e}"
 
     return mcp
