@@ -1,0 +1,5 @@
+{"input":"Some text without image","parts":[],"mode":"normal"}
+{"input":"[Image 1] First test image","parts":[{"type":"file","mime":"image/png","filename":"clipboard","url":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="}],"mode":"normal"}
+{"input":"Another text","parts":[],"mode":"normal"}
+{"input":"[Image 1] Second occurrence (different session)","parts":[{"type":"file","mime":"image/jpeg","filename":"clipboard","url":"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKCkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKf/wAALCAABAAIBAREA/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIRAAAgIDAQEAAAAAAAAAAAAAAQIDBAAFIRIiMUH/2gAIAQEAAD8AZN5//9k="}],"mode":"normal"}
+{"input":"[Image 999] Non-existent reference","parts":[],"mode":"normal"}
