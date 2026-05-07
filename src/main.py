@@ -68,13 +68,16 @@ def create_app() -> FastMCP:
                 - "base64": Treat as base64 string
             detail: Detail level for image analysis ("low", "high", "auto")
             image_format: Image format when using base64 (default "png")
+        
+        Returns:
+            Image description text or error message starting with "Error: "
         """
         try:
+            image_source = image_source.strip()
+            
             if source_type == "auto":
-                image_source_stripped = image_source.strip()
-                
-                if is_image_reference(image_source_stripped):
-                    mime, b64 = extract_image_by_reference(image_source_stripped)
+                if is_image_reference(image_source):
+                    mime, b64 = extract_image_by_reference(image_source)
                 elif Path(image_source).exists():
                     mime, b64 = ImageHelper.prepare_image(Path(image_source))
                 else:
@@ -105,8 +108,6 @@ def create_app() -> FastMCP:
                 },
             ]
             return vision.call_model(messages)
-        except (FileNotFoundError, ValueError, RuntimeError) as e:
-            return f"Error: {e}"
         except Exception as e:
             return f"Error: {e}"
 
