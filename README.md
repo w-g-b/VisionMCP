@@ -1,4 +1,4 @@
-# Image MCP
+# Vision MCP
 
 A local MCP server for image understanding via vision models.
 
@@ -33,7 +33,7 @@ model:
 ## Usage
 
 ```bash
-image-mcp
+vision-mcp
 ```
 
 Or for development:
@@ -49,8 +49,8 @@ To connect an MCP client (such as Claude Desktop), add the following to your cli
 ```json
 {
   "mcpServers": {
-    "image-mcp": {
-      "command": "image-mcp"
+    "vision-mcp": {
+      "command": "vision-mcp"
     }
   }
 }
