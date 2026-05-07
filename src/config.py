@@ -1,4 +1,6 @@
 from pathlib import Path
+
+import yaml
 from pydantic import BaseModel, Field
 
 
@@ -15,8 +17,6 @@ class Config(BaseModel):
 
 
 def load_config(config_path: Path | None = None) -> Config:
-    import yaml
-
     if config_path is None:
         config_path = Path(__file__).parent.parent / "config.yaml"
 
@@ -26,9 +26,4 @@ def load_config(config_path: Path | None = None) -> Config:
     with open(config_path, "r") as f:
         data = yaml.safe_load(f)
 
-    config = Config(**data)
-
-    if not config.model.api_key:
-        raise ValueError("model.api_key is required but empty")
-
-    return config
+    return Config(**data)
