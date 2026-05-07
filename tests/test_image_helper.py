@@ -3,7 +3,6 @@ import base64
 from pathlib import Path
 from src.image_helper import ImageHelper
 
-SUPPORTED_FORMATS = ["png", "jpg", "jpeg", "gif", "webp"]
 
 def test_read_image_from_path(tmp_path):
     img_path = tmp_path / "test.png"
@@ -15,6 +14,18 @@ def test_read_image_from_path(tmp_path):
 def test_read_image_not_found():
     with pytest.raises(FileNotFoundError, match="not found"):
         ImageHelper.read_image(Path("/nonexistent/image.png"))
+
+def test_read_image_empty(tmp_path):
+    img_path = tmp_path / "empty.png"
+    img_path.write_bytes(b"")
+    with pytest.raises(ValueError, match="Image file is empty"):
+        ImageHelper.read_image(img_path)
+
+def test_read_image_accepts_string_path(tmp_path):
+    img_path = tmp_path / "test.png"
+    img_path.write_bytes(b"data")
+    result = ImageHelper.read_image(str(img_path))
+    assert result == b"data"
 
 def test_encode_to_base64(tmp_path):
     img_path = tmp_path / "test.png"
@@ -30,7 +41,7 @@ def test_encode_base64_string():
     decoded = base64.b64decode(encoded)
     assert decoded == raw
 
-def test_detect_mime_type(tmp_path):
+def test_mime_type_from_extension(tmp_path):
     for ext, expected in [
         ("png", "image/png"),
         ("jpg", "image/jpeg"),
@@ -40,13 +51,13 @@ def test_detect_mime_type(tmp_path):
     ]:
         p = tmp_path / f"test.{ext}"
         p.write_bytes(b"x")
-        assert ImageHelper.detect_mime_type(p) == expected
+        assert ImageHelper.mime_type_from_extension(p) == expected
 
-def test_detect_mime_type_unsupported(tmp_path):
+def test_mime_type_from_extension_unsupported(tmp_path):
     p = tmp_path / "test.bmp"
     p.write_bytes(b"x")
     with pytest.raises(ValueError, match="Unsupported"):
-        ImageHelper.detect_mime_type(p)
+        ImageHelper.mime_type_from_extension(p)
 
 def test_prepare_image_from_path(tmp_path):
     img_path = tmp_path / "test.png"
@@ -60,3 +71,13 @@ def test_prepare_image_from_base64():
     mime, b64 = ImageHelper.prepare_image_from_base64(b64_input, "png")
     assert mime == "image/png"
     assert b64 == b64_input
+
+def test_prepare_image_from_base64_invalid():
+    with pytest.raises(ValueError, match="Invalid base64 string"):
+        ImageHelper.prepare_image_from_base64("not-valid-base64!!!")
+
+def test_prepare_image_accepts_string_path(tmp_path):
+    img_path = tmp_path / "test.png"
+    img_path.write_bytes(b"img")
+    mime, b64 = ImageHelper.prepare_image(str(img_path))
+    assert mime == "image/png"
