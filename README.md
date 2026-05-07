@@ -7,6 +7,31 @@ A local MCP server for image understanding via vision models.
 - **describe_image**: Automatically describe image content
 - **ask_image**: Ask specific questions about an image
 
+## Auto-Detection Mode
+
+Vision MCP now supports automatic detection of image sources:
+
+**Image References (OpenCode pasted images):**
+```
+describe this [Image 1] using vision-mcp
+what is in [Image 2]? use vision-mcp
+```
+
+**File Paths:**
+```
+describe /path/to/image.png using vision-mcp
+```
+
+**Base64 Strings:**
+```
+ask about this base64string with vision-mcp
+```
+
+The `source_type` parameter defaults to `"auto"` for seamless operation.
+For explicit control:
+- `source_type="path"` - Force file path mode
+- `source_type="base64"` - Force base64 mode
+
 ## Prerequisites
 
 Requires Python 3.10+
@@ -76,8 +101,14 @@ Or if running from the project directory without installing globally:
 }
 ```
 
-After configuring, you can ask OpenCode to analyze images:
+After configuring, you can ask OpenCode to analyze images. The tool automatically detects whether you're referencing a pasted image, file path, or base64 string:
 
+**Pasted Images (auto-detected):**
+```
+describe this [Image 1] using vision-mcp
+```
+
+**File Paths (auto-detected):**
 ```
 describe this image.png using vision-mcp
 ```
