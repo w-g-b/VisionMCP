@@ -44,6 +44,50 @@ python -m src.main
 
 ## MCP Client Configuration
 
+### OpenCode
+
+Add the following to your `opencode.json` (or `opencode.jsonc`) config file:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "vision-mcp": {
+      "type": "local",
+      "command": ["vision-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+Or if running from the project directory without installing globally:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "vision-mcp": {
+      "type": "local",
+      "command": ["python", "-m", "src.main"],
+      "enabled": true
+    }
+  }
+}
+```
+
+After configuring, you can ask OpenCode to analyze images:
+
+```
+describe this image.png using vision-mcp
+```
+
+```
+what is in this screenshot.png? use vision-mcp
+```
+
+### Claude Desktop / Other Clients
+
 To connect an MCP client (such as Claude Desktop), add the following to your client's MCP server configuration:
 
 ```json
