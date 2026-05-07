@@ -15,39 +15,6 @@ def create_app() -> FastMCP:
     vision = VisionClient(config.model)
     mcp = FastMCP("vision-mcp")
 
-    def _build_messages(
-        system_prompt: str,
-        user_text: str,
-        image_source: str,
-        source_type: str,
-        detail: str,
-        image_format: str = "png",
-    ) -> list[dict]:
-        if source_type not in ("path", "base64"):
-            raise ValueError("source_type must be 'path' or 'base64'")
-
-        if source_type == "path":
-            mime, b64 = ImageHelper.prepare_image(Path(image_source))
-        else:
-            mime, b64 = ImageHelper.prepare_image_from_base64(image_source, image_format)
-
-        return [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:{mime};base64,{b64}",
-                            "detail": detail,
-                        },
-                    },
-                    {"type": "text", "text": user_text},
-                ],
-            },
-        ]
-
     @mcp.tool()
     def describe_image(
         image_source: str,
@@ -176,47 +143,6 @@ def create_app() -> FastMCP:
             return vision.call_model(messages)
         except Exception as e:
             return f"Error: {e}"
-
-    @mcp.tool()
-    def debug_image_input(image_data: str) -> str:
-        """Debug tool to analyze the format of image input from OpenCode.
-
-        Args:
-            image_data: The image data passed by OpenCode (unknown format)
-        """
-        import json
-        import os
-
-        result = {
-            "type": str(type(image_data).__name__),
-            "length": len(image_data),
-        }
-
-        if isinstance(image_data, str):
-            preview = image_data[:200] if len(image_data) > 200 else image_data
-            result["preview"] = preview
-
-            if image_data.startswith("data:image/"):
-                result["detected_format"] = "data URI"
-                parts = image_data.split(",", 1)
-                if len(parts) == 2:
-                    mime_part = parts[0]
-                    result["mime_type"] = mime_part.replace("data:", "").split(";")[0]
-                    result["base64_part_length"] = len(parts[1])
-            elif os.path.exists(image_data):
-                result["detected_format"] = "file path"
-                result["file_exists"] = True
-                result["file_size"] = os.path.getsize(image_data)
-                result["is_absolute"] = os.path.isabs(image_data)
-            else:
-                try:
-                    import base64
-                    base64.b64decode(image_data[:100], validate=True)
-                    result["detected_format"] = "base64 string"
-                except Exception:
-                    result["detected_format"] = "unknown"
-
-        return json.dumps(result, indent=2, ensure_ascii=False)
 
     return mcp
 
