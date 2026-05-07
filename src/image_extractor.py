@@ -10,6 +10,7 @@ def is_image_reference(text: str) -> bool:
     Matches:
     - "[Image 1]", "[Image 2]", etc.
     - "Image 1", "Image 2", etc.
+    - Case-insensitive (matches "image", "IMAGE", etc.)
     
     Args:
         text: Input text to check
@@ -18,7 +19,7 @@ def is_image_reference(text: str) -> bool:
         True if text matches image reference pattern
     """
     pattern = r'^\[Image\s+\d+\]$|^Image\s+\d+$'
-    return bool(re.match(pattern, text.strip()))
+    return bool(re.match(pattern, text.strip(), re.IGNORECASE))
 
 
 class ImageExtractor:
