@@ -7,9 +7,19 @@ A local MCP server for image understanding via vision models.
 - **describe_image**: Automatically describe image content
 - **ask_image**: Ask specific questions about an image
 
+## Prerequisites
+
+Requires Python 3.10+
+
+## Installation
+
+```bash
+pip install -e .
+```
+
 ## Configuration
 
-Edit `config.yaml`:
+Edit `config.yaml` in the project root directory:
 
 ```yaml
 model:
@@ -20,16 +30,30 @@ model:
   timeout: 60
 ```
 
-## Installation
-
-```bash
-pip install -e .
-```
-
 ## Usage
 
 ```bash
+image-mcp
+```
+
+Or for development:
+
+```bash
 python -m src.main
+```
+
+## MCP Client Configuration
+
+To connect an MCP client (such as Claude Desktop), add the following to your client's MCP server configuration:
+
+```json
+{
+  "mcpServers": {
+    "image-mcp": {
+      "command": "image-mcp"
+    }
+  }
+}
 ```
 
 ## Supported Image Formats
