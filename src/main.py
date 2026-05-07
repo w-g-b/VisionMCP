@@ -115,31 +115,65 @@ def create_app() -> FastMCP:
     def ask_image(
         image_source: str,
         question: str,
-        source_type: str = "path",
+        source_type: str = "auto",
         detail: str = "auto",
         image_format: str = "png",
     ) -> str:
         """Ask a question about an image.
 
         Args:
-            image_source: Local file path or base64 encoded image string
+            image_source: Image source - can be:
+                - Image reference like "[Image 1]" (from OpenCode paste)
+                - Local file path
+                - Base64 encoded string
             question: The question to ask about the image
-            source_type: "path" or "base64"
-            detail: "low", "high", or "auto"
-            image_format: Image format for base64 input (default "png")
+            source_type: Source type detection mode:
+                - "auto": Auto-detect source type (recommended)
+                - "path": Treat as file path
+                - "base64": Treat as base64 string
+            detail: Detail level for image analysis ("low", "high", "auto")
+            image_format: Image format when using base64 (default "png")
+        
+        Returns:
+            Answer to the question or error message starting with "Error: "
         """
         try:
-            messages = _build_messages(
-                ASK_SYSTEM_PROMPT,
-                question,
-                image_source,
-                source_type,
-                detail,
-                image_format,
-            )
+            image_source = image_source.strip()
+            question = question.strip()
+            
+            if source_type == "auto":
+                if is_image_reference(image_source):
+                    mime, b64 = extract_image_by_reference(image_source)
+                elif Path(image_source).exists():
+                    mime, b64 = ImageHelper.prepare_image(Path(image_source))
+                else:
+                    mime, b64 = ImageHelper.prepare_image_from_base64(
+                        image_source, image_format
+                    )
+            elif source_type == "path":
+                mime, b64 = ImageHelper.prepare_image(Path(image_source))
+            else:
+                mime, b64 = ImageHelper.prepare_image_from_base64(
+                    image_source, image_format
+                )
+            
+            messages = [
+                {"role": "system", "content": ASK_SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime};base64,{b64}",
+                                "detail": detail,
+                            },
+                        },
+                        {"type": "text", "text": question},
+                    ],
+                },
+            ]
             return vision.call_model(messages)
-        except (FileNotFoundError, ValueError, RuntimeError) as e:
-            return f"Error: {e}"
         except Exception as e:
             return f"Error: {e}"
 
