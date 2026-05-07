@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from src.image_extractor import ImageExtractor, is_image_reference
+from src.image_extractor import ImageExtractor, is_image_reference, parse_data_uri
 
 
 class TestImageExtractor:
@@ -42,3 +42,27 @@ class TestIsImageReference:
         """Test whitespace edge cases."""
         assert is_image_reference("  [Image 1]  ") == True
         assert is_image_reference("\tImage 2\n") == True
+
+
+class TestParseDataUri:
+    def test_png_data_uri(self):
+        """Test parsing PNG data URI."""
+        data_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEA"
+        mime, b64 = parse_data_uri(data_uri)
+        assert mime == "image/png"
+        assert b64 == "iVBORw0KGgoAAAANSUhEUgAAAAEA"
+    
+    def test_jpeg_data_uri(self):
+        """Test parsing JPEG data URI."""
+        data_uri = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQAB"
+        mime, b64 = parse_data_uri(data_uri)
+        assert mime == "image/jpeg"
+        assert b64 == "/9j/4AAQSkZJRgABAQAAAQAB"
+    
+    def test_invalid_data_uri(self):
+        """Test invalid data URI raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid data URI"):
+            parse_data_uri("not-a-data-uri")
+        
+        with pytest.raises(ValueError, match="not an image"):
+            parse_data_uri("data:text/plain;base64,some-data")

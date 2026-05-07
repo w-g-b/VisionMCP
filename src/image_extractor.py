@@ -22,6 +22,36 @@ def is_image_reference(text: str) -> bool:
     return bool(re.match(pattern, text.strip(), re.IGNORECASE))
 
 
+def parse_data_uri(data_uri: str) -> tuple[str, str]:
+    """Parse data URI into mime type and base64 data.
+    
+    Args:
+        data_uri: Data URI string (e.g., "data:image/png;base64,<data>")
+        
+    Returns:
+        Tuple of (mime_type, base64_data)
+        
+    Raises:
+        ValueError: If data URI format is invalid or not an image
+    """
+    if not data_uri.startswith("data:"):
+        raise ValueError("Invalid data URI: must start with 'data:'")
+    
+    parts = data_uri.split(",", 1)
+    if len(parts) != 2:
+        raise ValueError("Invalid data URI: missing comma separator")
+    
+    header = parts[0]
+    b64_data = parts[1]
+    
+    if not header.startswith("data:image/"):
+        raise ValueError(f"Invalid data URI: '{header}' is not an image type")
+    
+    mime_part = header.replace("data:", "").replace(";base64", "")
+    
+    return mime_part, b64_data
+
+
 class ImageExtractor:
     """Extract image data from OpenCode prompt history."""
     
