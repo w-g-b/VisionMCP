@@ -100,12 +100,15 @@ Add to your `opencode.json` config file (located at `~/.config/opencode/opencode
   "mcp": {
     "vision-mcp": {
       "type": "local",
-      "command": ["/usr1/wgb/vision_mcp/run_mcp.sh"],
+      "command": ["python", "-m", "src.main"],
+      "cwd": "/usr1/wgb/vision_mcp",
       "enabled": true
     }
   }
 }
 ```
+
+Note: Use the project's virtual environment by running `.venv/bin/python -m src.main` if needed.
 
 #### Claude Desktop / Other Clients
 
