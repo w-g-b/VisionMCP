@@ -139,3 +139,62 @@ class TestExtractImageByReference:
                 extract_image_by_reference("[Image 1]")
         finally:
             ImageExtractor.HISTORY_FILE = original
+    
+    def test_case_insensitive_extraction(self, tmp_path):
+        """Test case-insensitive matching in history."""
+        from src.image_extractor import extract_image_by_reference, ImageExtractor
+        
+        # Create history with lowercase reference
+        history_file = tmp_path / "prompt-history.jsonl"
+        history_file.write_text(
+            '{"input":"[image 1] lowercase test","parts":[{"type":"file","mime":"image/png","filename":"clipboard","url":"data:image/png;base64,abc"}],"mode":"normal"}\n'
+        )
+        
+        original = ImageExtractor.HISTORY_FILE
+        ImageExtractor.HISTORY_FILE = history_file
+        
+        try:
+            # Request with uppercase should still match
+            mime, b64 = extract_image_by_reference("[IMAGE 1]")
+            assert mime == "image/png"
+            assert b64 == "abc"
+        finally:
+            ImageExtractor.HISTORY_FILE = original
+    
+    def test_empty_history_file(self, tmp_path):
+        """Test empty history file raises ValueError."""
+        from src.image_extractor import extract_image_by_reference, ImageExtractor
+        
+        history_file = tmp_path / "prompt-history.jsonl"
+        history_file.write_text("")
+        
+        original = ImageExtractor.HISTORY_FILE
+        ImageExtractor.HISTORY_FILE = history_file
+        
+        try:
+            with pytest.raises(ValueError, match="未找到"):
+                extract_image_by_reference("[Image 1]")
+        finally:
+            ImageExtractor.HISTORY_FILE = original
+    
+    def test_malformed_json_lines(self, tmp_path):
+        """Test malformed JSON lines are skipped."""
+        from src.image_extractor import extract_image_by_reference, ImageExtractor
+        
+        history_file = tmp_path / "prompt-history.jsonl"
+        history_file.write_text(
+            '{"input":"[Image 1] test","parts":[{"type":"file","mime":"image/png","filename":"clipboard","url":"data:image/png;base64,valid"}],"mode":"normal"}\n'
+            "this is not json\n"
+            '{"input":"[Image 1] valid","parts":[{"type":"file","mime":"image/jpeg","filename":"clipboard","url":"data:image/jpeg;base64,abc"}],"mode":"normal"}\n'
+        )
+        
+        original = ImageExtractor.HISTORY_FILE
+        ImageExtractor.HISTORY_FILE = history_file
+        
+        try:
+            # Should skip malformed line and find valid entry
+            mime, b64 = extract_image_by_reference("[Image 1]")
+            assert mime == "image/jpeg"
+            assert b64 == "abc"
+        finally:
+            ImageExtractor.HISTORY_FILE = original

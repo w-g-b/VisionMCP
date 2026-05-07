@@ -85,6 +85,9 @@ def extract_image_by_reference(image_ref: str) -> tuple[str, str]:
     if not ref_normalized.startswith("["):
         ref_normalized = f"[{ref_normalized}]"
     
+    # Case-insensitive matching (OpenCode may use different capitalization)
+    ref_pattern = re.compile(re.escape(ref_normalized), re.IGNORECASE)
+    
     # Check history file exists
     if not ImageExtractor.HISTORY_FILE.exists():
         raise FileNotFoundError("OpenCode历史文件不存在，请确认已粘贴图片")
@@ -107,9 +110,9 @@ def extract_image_by_reference(image_ref: str) -> tuple[str, str]:
         except json.JSONDecodeError:
             continue
         
-        # Check if input contains our image reference
+        # Check if input contains our image reference (case-insensitive)
         input_text = entry.get("input", "")
-        if ref_normalized not in input_text:
+        if not ref_pattern.search(input_text):
             continue
         
         # Found match! Check parts for image data
