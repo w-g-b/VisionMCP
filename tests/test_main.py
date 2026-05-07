@@ -22,7 +22,7 @@ def test_describe_image_error_file_not_found():
         mcp = create_app()
 
         result = asyncio.run(
-            mcp.call_tool("describe_image", {"image_source": "/nonexistent/path.png"})
+            mcp.call_tool("describe_image", {"image_source": "/nonexistent/path.png", "source_type": "path"})
         )
         text = result.content[0].text
         assert text.startswith("Error:")
