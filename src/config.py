@@ -14,6 +14,7 @@ class ModelConfig(BaseModel):
 
 class Config(BaseModel):
     model: ModelConfig
+    logging: bool = False
 
 
 def load_config(config_path: Path | None = None) -> Config:
@@ -26,4 +27,9 @@ def load_config(config_path: Path | None = None) -> Config:
     with open(config_path, "r") as f:
         data = yaml.safe_load(f)
 
-    return Config(**data)
+    config_data = {
+        "model": data.get("model"),
+        "logging": data.get("config", {}).get("logging", False),
+    }
+
+    return Config(**config_data)

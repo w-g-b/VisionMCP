@@ -238,7 +238,7 @@ def create_app() -> FastMCP:
             image_format: Image format when using base64 (default "png")
         
         Returns:
-            Answer to the question or error message starting with "Error: "
+            Answer to the question or error message in JSON format
         """
         try:
             image_source = image_source.strip()
@@ -287,9 +287,25 @@ def create_app() -> FastMCP:
                     ],
                 },
             ]
-            return vision.call_model(messages)
+            
+            result = vision.call_model(messages)
+            
+            if isinstance(result, APIError):
+                return _format_error_json(
+                    result.status_code,
+                    result.error_message,
+                    result.error_type,
+                    result.suggestion
+                )
+            
+            return result
         except Exception as e:
-            return f"Error: {e}"
+            return _format_error_json(
+                None,
+                str(e),
+                "local_error",
+                "请检查输入参数是否正确"
+            )
 
     @mcp.tool()
     def compare_images(
@@ -325,7 +341,7 @@ def create_app() -> FastMCP:
             image_format_2: Image format for second base64 image (default "png")
         
         Returns:
-            Structured comparison analysis or error message starting with "Error: "
+            Structured comparison analysis or error message in JSON format
         """
         try:
             mime_1, b64_1 = _load_image(image_source_1, source_type_1, image_format_1)
@@ -365,9 +381,25 @@ def create_app() -> FastMCP:
                     ],
                 },
             ]
-            return vision.call_model(messages)
+            
+            result = vision.call_model(messages)
+            
+            if isinstance(result, APIError):
+                return _format_error_json(
+                    result.status_code,
+                    result.error_message,
+                    result.error_type,
+                    result.suggestion
+                )
+            
+            return result
         except Exception as e:
-            return f"Error: {e}"
+            return _format_error_json(
+                None,
+                str(e),
+                "local_error",
+                "请检查输入参数是否正确"
+            )
 
     return mcp
 
