@@ -1,5 +1,65 @@
-from openai import OpenAI
+from dataclasses import dataclass
+from typing import Optional
+from openai import OpenAI, APIStatusError, APIError as OpenAI_APIError
 from config import ModelConfig
+
+
+@dataclass
+class APIError:
+    status_code: Optional[int]
+    error_message: str
+    error_type: str
+    suggestion: str
+
+
+def _get_error_info(status_code: Optional[int], message: str) -> dict:
+    """根据HTTP状态码映射错误类型和建议"""
+    error_mapping = {
+        400: {
+            "error_type": "invalid_request",
+            "suggestion": "请求参数无效，请检查图片格式或请求内容"
+        },
+        401: {
+            "error_type": "auth_error",
+            "suggestion": "请检查config.yaml中的api_key是否正确"
+        },
+        403: {
+            "error_type": "auth_error",
+            "suggestion": "权限不足，请检查api_key权限或model_name配置"
+        },
+        404: {
+            "error_type": "not_found",
+            "suggestion": "请检查config.yaml中的base_url和model_name配置，确认API端点正确"
+        },
+        429: {
+            "error_type": "rate_limit",
+            "suggestion": "请求频率超限，请稍后重试"
+        },
+        500: {
+            "error_type": "server_error",
+            "suggestion": "API服务器错误，请稍后重试"
+        },
+        502: {
+            "error_type": "server_error",
+            "suggestion": "API网关错误，请稍后重试"
+        },
+        503: {
+            "error_type": "server_error",
+            "suggestion": "API服务不可用，请稍后重试"
+        }
+    }
+    
+    if status_code and status_code in error_mapping:
+        info = error_mapping[status_code]
+    else:
+        info = {
+            "error_type": "unknown",
+            "suggestion": "未知错误，请查看错误消息详情"
+        }
+    
+    info["status_code"] = status_code
+    info["error_message"] = message
+    return info
 
 
 class VisionClient:
