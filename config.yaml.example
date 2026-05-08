@@ -5,4 +5,5 @@ model:
   max_tokens: 2048
   timeout: 60
 
-logging: false
+config:
+  logging: false
