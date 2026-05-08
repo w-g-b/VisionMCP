@@ -8,6 +8,17 @@ A local MCP (Model Context Protocol) server for image understanding via vision m
 - **ask_image**: Ask specific questions about an image  
 - **compare_images**: Compare two images and analyze differences across layout, color, text, style, content, and details
 
+### Request Logging
+
+Vision MCP can log all image_url content from tool requests:
+
+- **Configuration**: Enable via `config.logging: true` in config.yaml
+- **Log Format**: Daily log files (YYYY-MM-DD.log) in log/ directory
+- **Log Content**: Timestamp, tool name, parameters, and complete image_url (including base64 data)
+- **Default**: Logging is disabled by default
+
+Note: Logs contain full base64 image data which can be large. Monitor disk space usage.
+
 ### Auto-Detection Mode
 
 Vision MCP automatically detects the image source type, eliminating the need for manual specification:
@@ -53,6 +64,9 @@ model:
   model_name: "gpt-4o"
   max_tokens: 2048
   timeout: 60
+
+config:
+  logging: false  # Set to true to enable request logging
 ```
 
 **Alternative providers:**
@@ -225,6 +239,11 @@ The tool provides clear error messages:
 - Requires valid vision model API credentials
 - Large history files may impact performance (though typically negligible)
 - Image references must match entries in prompt-history (can't analyze deleted/cleared history)
+
+**Log Management:**
+- Logs are not automatically cleaned up - manage manually
+- Log files can grow large with many requests (contain full base64 data)
+- Recommend periodic log cleanup or moving logs to external storage
 
 ## Troubleshooting
 
