@@ -15,7 +15,6 @@ class ImageRequestLogger:
         image_urls: list[str],
         **params: Any
     ) -> None:
-        """Log request to daily log file"""
         if not self.enabled:
             return
         
