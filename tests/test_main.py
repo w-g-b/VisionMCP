@@ -31,8 +31,11 @@ def test_describe_image_error_file_not_found():
 
 def test_ask_image_error_api_failure():
     config = Config(model=ModelConfig(api_key="sk-test"))
+    mock_vision_client = MagicMock()
+    mock_vision_client.call_model.side_effect = Exception("API connection failed")
+    
     with patch("src.main.load_config", return_value=config):
-        with patch("src.vision_client.VisionClient.call_model", side_effect=Exception("API connection failed")):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
             mcp = create_app()
 
             result = asyncio.run(
