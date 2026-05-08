@@ -1,10 +1,13 @@
+from datetime import datetime
 from pathlib import Path
+import json
 from fastmcp import FastMCP
 
-from config import load_config
-from vision_client import VisionClient
-from image_helper import ImageHelper
-from image_extractor import is_image_reference, extract_image_by_reference
+from .config import load_config
+from .vision_client import VisionClient, APIError
+from .image_helper import ImageHelper
+from .image_extractor import is_image_reference, extract_image_by_reference
+from .logger import ImageRequestLogger
 
 
 def _load_image(image_source: str, source_type: str, image_format: str) -> tuple[str, str]:
@@ -94,6 +97,7 @@ COMPARE_SYSTEM_PROMPT = """你是一个专业的视觉对比分析助手。请�
 def create_app() -> FastMCP:
     config = load_config()
     vision = VisionClient(config.model)
+    logger = ImageRequestLogger(enabled=config.logging)
     mcp = FastMCP("vision-mcp")
 
     @mcp.tool()
@@ -118,7 +122,7 @@ def create_app() -> FastMCP:
             image_format: Image format when using base64 (default "png")
         
         Returns:
-            Image description text or error message starting with "Error: "
+            Image description text or error message in JSON format
         """
         try:
             image_source = image_source.strip()
@@ -139,6 +143,16 @@ def create_app() -> FastMCP:
                     image_source, image_format
                 )
             
+            image_url = f"data:{mime};base64,{b64}"
+            logger.log_request(
+                tool_name="describe_image",
+                timestamp=datetime.now().isoformat(),
+                image_urls=[image_url],
+                source_type=source_type,
+                detail=detail,
+                image_format=image_format
+            )
+            
             messages = [
                 {"role": "system", "content": DESCRIBE_SYSTEM_PROMPT},
                 {
@@ -147,7 +161,7 @@ def create_app() -> FastMCP:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:{mime};base64,{b64}",
+                                "url": image_url,
                                 "detail": detail,
                             },
                         },
@@ -155,9 +169,25 @@ def create_app() -> FastMCP:
                     ],
                 },
             ]
-            return vision.call_model(messages)
+            
+            result = vision.call_model(messages)
+            
+            if isinstance(result, APIError):
+                return json.dumps({
+                    "status_code": result.status_code,
+                    "error_message": result.error_message,
+                    "error_type": result.error_type,
+                    "suggestion": result.suggestion
+                }, ensure_ascii=False, indent=2)
+            
+            return result
         except Exception as e:
-            return f"Error: {e}"
+            return json.dumps({
+                "status_code": None,
+                "error_message": str(e),
+                "error_type": "local_error",
+                "suggestion": "请检查输入参数是否正确"
+            }, ensure_ascii=False, indent=2)
 
     @mcp.tool()
     def ask_image(
@@ -205,6 +235,17 @@ def create_app() -> FastMCP:
                     image_source, image_format
                 )
             
+            image_url = f"data:{mime};base64,{b64}"
+            logger.log_request(
+                tool_name="ask_image",
+                timestamp=datetime.now().isoformat(),
+                image_urls=[image_url],
+                source_type=source_type,
+                detail=detail,
+                image_format=image_format,
+                question=question
+            )
+            
             messages = [
                 {"role": "system", "content": ASK_SYSTEM_PROMPT},
                 {
@@ -213,7 +254,7 @@ def create_app() -> FastMCP:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:{mime};base64,{b64}",
+                                "url": image_url,
                                 "detail": detail,
                             },
                         },
@@ -265,6 +306,17 @@ def create_app() -> FastMCP:
             mime_1, b64_1 = _load_image(image_source_1, source_type_1, image_format_1)
             mime_2, b64_2 = _load_image(image_source_2, source_type_2, image_format_2)
             
+            image_url_1 = f"data:{mime_1};base64,{b64_1}"
+            image_url_2 = f"data:{mime_2};base64,{b64_2}"
+            logger.log_request(
+                tool_name="compare_images",
+                timestamp=datetime.now().isoformat(),
+                image_urls=[image_url_1, image_url_2],
+                source_type=source_type_1,
+                detail=detail,
+                image_format=image_format_1
+            )
+            
             messages = [
                 {"role": "system", "content": COMPARE_SYSTEM_PROMPT},
                 {
@@ -273,14 +325,14 @@ def create_app() -> FastMCP:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:{mime_1};base64,{b64_1}",
+                                "url": image_url_1,
                                 "detail": detail,
                             },
                         },
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:{mime_2};base64,{b64_2}",
+                                "url": image_url_2,
                                 "detail": detail,
                             },
                         },
