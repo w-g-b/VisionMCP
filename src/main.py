@@ -150,23 +150,7 @@ def create_app() -> FastMCP:
             Image description text or error message in JSON format
         """
         try:
-            image_source = image_source.strip()
-            
-            if source_type == "auto":
-                if is_image_reference(image_source):
-                    mime, b64 = extract_image_by_reference(image_source)
-                elif Path(image_source).exists():
-                    mime, b64 = ImageHelper.prepare_image(Path(image_source))
-                else:
-                    mime, b64 = ImageHelper.prepare_image_from_base64(
-                        image_source, image_format
-                    )
-            elif source_type == "path":
-                mime, b64 = ImageHelper.prepare_image(Path(image_source))
-            else:
-                mime, b64 = ImageHelper.prepare_image_from_base64(
-                    image_source, image_format
-                )
+            mime, b64 = _load_image(image_source, source_type, image_format)
             
             image_url = f"data:{mime};base64,{b64}"
             logger.log_request(
@@ -241,24 +225,8 @@ def create_app() -> FastMCP:
             Answer to the question or error message in JSON format
         """
         try:
-            image_source = image_source.strip()
             question = question.strip()
-            
-            if source_type == "auto":
-                if is_image_reference(image_source):
-                    mime, b64 = extract_image_by_reference(image_source)
-                elif Path(image_source).exists():
-                    mime, b64 = ImageHelper.prepare_image(Path(image_source))
-                else:
-                    mime, b64 = ImageHelper.prepare_image_from_base64(
-                        image_source, image_format
-                    )
-            elif source_type == "path":
-                mime, b64 = ImageHelper.prepare_image(Path(image_source))
-            else:
-                mime, b64 = ImageHelper.prepare_image_from_base64(
-                    image_source, image_format
-                )
+            mime, b64 = _load_image(image_source, source_type, image_format)
             
             image_url = f"data:{mime};base64,{b64}"
             logger.log_request(
