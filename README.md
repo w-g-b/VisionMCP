@@ -5,7 +5,8 @@ A local MCP (Model Context Protocol) server for image understanding via vision m
 ## Features
 
 - **describe_image**: Automatically describe image content with detailed analysis
-- **ask_image**: Ask specific questions about an image
+- **ask_image**: Ask specific questions about an image  
+- **compare_images**: Compare two images and analyze differences across layout, color, text, style, content, and details
 
 ### Auto-Detection Mode
 
@@ -139,6 +140,32 @@ analyze this diagram.png with vision-mcp
 **Base64 Strings:**
 ```
 describe this base64image using vision-mcp
+```
+
+### Image Comparison
+
+Vision MCP can compare two images and provide detailed multi-dimensional analysis:
+
+**Auto-Detection:**
+```
+compare [Image 1] and [Image 2] using vision-mcp
+what's the difference between screenshot.png and screenshot_v2.png? use vision-mcp
+analyze the differences in design.png and mockup.png with vision-mcp
+```
+
+**Structured Analysis:**
+The comparison tool analyzes across 6 dimensions:
+- **Layout**: Element positioning, hierarchy, spatial usage
+- **Color**: Main colors, contrast, color palette differences
+- **Text**: Content, fonts, typography
+- **Style**: Overall aesthetic, design elements, visual effects
+- **Content**: Subject matter, semantics, message delivery
+- **Details**: Key variations, subtle differences
+
+**Base64 Images:**
+```
+compare these two images using vision-mcp
+(Provide two base64 image strings)
 ```
 
 ### Explicit Mode (Optional)
