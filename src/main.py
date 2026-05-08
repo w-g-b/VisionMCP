@@ -312,9 +312,11 @@ def create_app() -> FastMCP:
                 tool_name="compare_images",
                 timestamp=datetime.now().isoformat(),
                 image_urls=[image_url_1, image_url_2],
-                source_type=source_type_1,
+                source_type_1=source_type_1,
+                source_type_2=source_type_2,
                 detail=detail,
-                image_format=image_format_1
+                image_format_1=image_format_1,
+                image_format_2=image_format_2
             )
             
             messages = [
