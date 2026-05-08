@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from src.config import Config, load_config
+from src.config import Config, load_config, ModelConfig
 
 
 def test_load_valid_config(tmp_path):
@@ -36,3 +36,20 @@ model:
 def test_config_file_not_found():
     with pytest.raises(FileNotFoundError):
         load_config(Path("/nonexistent/config.yaml"))
+
+
+def test_config_with_logging():
+    """Test Config accepts logging field"""
+    model_config = ModelConfig(
+        base_url="https://api.openai.com/v1",
+        api_key="test-key",
+        model_name="gpt-4o",
+        max_tokens=2048,
+        timeout=60
+    )
+    
+    config = Config(model=model_config, logging=True)
+    assert config.logging == True
+    
+    config_disabled = Config(model=model_config)
+    assert config_disabled.logging == False

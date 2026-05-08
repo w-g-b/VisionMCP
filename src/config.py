@@ -14,6 +14,7 @@ class ModelConfig(BaseModel):
 
 class Config(BaseModel):
     model: ModelConfig
+    logging: bool = False
 
 
 def load_config(config_path: Path | None = None) -> Config:
