@@ -11,4 +11,4 @@ dependencies = [
 ]
 
 [project.scripts]
-vision-mcp = "src.main:main"
+vision-mcp = "main:main"

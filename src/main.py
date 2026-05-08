@@ -1,10 +1,10 @@
 from pathlib import Path
 from fastmcp import FastMCP
 
-from src.config import load_config
-from src.vision_client import VisionClient
-from src.image_helper import ImageHelper
-from src.image_extractor import is_image_reference, extract_image_by_reference
+from config import load_config
+from vision_client import VisionClient
+from image_helper import ImageHelper
+from image_extractor import is_image_reference, extract_image_by_reference
 
 DESCRIBE_SYSTEM_PROMPT = "请详细描述这张图片的内容"
 ASK_SYSTEM_PROMPT = "你是一个视觉助手，请根据用户提供的图片回答问题"

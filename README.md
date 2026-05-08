@@ -68,10 +68,7 @@ Start the MCP server:
 vision-mcp
 ```
 
-Or for development:
-```bash
-python -m src.main
-```
+The server will start and listen for MCP client connections via stdio.
 
 ### MCP Client Configuration
 
@@ -93,22 +90,19 @@ Add to your `opencode.json` config file (located at `~/.config/opencode/opencode
 }
 ```
 
-**From project directory:**
+**From project directory (with virtual environment):**
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "vision-mcp": {
       "type": "local",
-      "command": ["python", "-m", "src.main"],
-      "cwd": "/usr1/wgb/vision_mcp",
+      "command": ["/usr1/wgb/vision_mcp/.venv/bin/vision-mcp"],
       "enabled": true
     }
   }
 }
 ```
-
-Note: Use the project's virtual environment by running `.venv/bin/python -m src.main` if needed.
 
 #### Claude Desktop / Other Clients
 
@@ -235,15 +229,18 @@ pytest tests/ -v
 ```
 vision_mcp/
 ├── src/
+│   ├── __init__.py
 │   ├── main.py              # MCP server and tool definitions
 │   ├── image_extractor.py   # Image extraction from OpenCode history
 │   ├── image_helper.py      # Image processing utilities
 │   ├── vision_client.py     # Vision model API client
 │   └── config.py            # Configuration management
 ├── tests/
-│   ├── test_image_extractor.py
+│   ├── test_*.py            # Unit tests
 │   └── fixtures/
 ├── config.yaml              # API configuration
+├── config.yaml.example      # Example configuration
+├── pyproject.toml           # Project metadata and dependencies
 └── README.md
 ```
 
