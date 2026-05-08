@@ -12,7 +12,7 @@ class APIError:
     suggestion: str
 
 
-def _get_error_info(status_code: Optional[int], message: str) -> dict:
+def _get_error_info(status_code: Optional[int], message: str) -> dict[str, str | Optional[int]]:
     """根据HTTP状态码映射错误类型和建议"""
     error_mapping = {
         400: {
