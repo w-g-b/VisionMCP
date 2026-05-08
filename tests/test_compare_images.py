@@ -90,3 +90,139 @@ def test_compare_images_success():
             assert "详细对比分析" in text
             assert "排版布局" in text
             assert "颜色" in text
+
+
+def test_compare_images_error_image1_not_found():
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    mock_vision_client = MagicMock()
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": "/nonexistent/path1.png",
+                        "image_source_2": VALID_PNG_BASE64,
+                        "source_type_1": "path",
+                        "source_type_2": "base64",
+                    },
+                )
+            )
+            text = result.content[0].text
+            assert text.startswith("Error:")
+            assert "not found" in text.lower() or "No such file" in text
+
+
+def test_compare_images_error_image2_not_found():
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    mock_vision_client = MagicMock()
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": VALID_PNG_BASE64,
+                        "image_source_2": "/nonexistent/path2.png",
+                        "source_type_1": "base64",
+                        "source_type_2": "path",
+                    },
+                )
+            )
+            text = result.content[0].text
+            assert text.startswith("Error:")
+            assert "not found" in text.lower() or "No such file" in text
+
+
+def test_compare_images_error_api_failure():
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    mock_vision_client = MagicMock()
+    mock_vision_client.call_model.side_effect = Exception("API connection failed")
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": VALID_PNG_BASE64,
+                        "image_source_2": VALID_PNG_BASE64,
+                        "source_type_1": "base64",
+                        "source_type_2": "base64",
+                    },
+                )
+            )
+            text = result.content[0].text
+            assert text == "Error: API connection failed"
+
+
+def test_compare_images_auto_detection():
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    mock_response = "对比分析结果"
+    mock_vision_client = MagicMock()
+    mock_vision_client.call_model.return_value = mock_response
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": VALID_PNG_BASE64,
+                        "image_source_2": VALID_PNG_BASE64,
+                        "source_type_1": "auto",
+                        "source_type_2": "auto",
+                    },
+                )
+            )
+            text = result.content[0].text
+            assert text == mock_response
+
+
+def test_compare_images_different_detail_levels():
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    mock_response = "对比分析结果"
+    mock_vision_client = MagicMock()
+    mock_vision_client.call_model.return_value = mock_response
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": VALID_PNG_BASE64,
+                        "image_source_2": VALID_PNG_BASE64,
+                        "source_type_1": "base64",
+                        "source_type_2": "base64",
+                        "detail": "low",
+                    },
+                )
+            )
+            assert result.content[0].text == mock_response
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": VALID_PNG_BASE64,
+                        "image_source_2": VALID_PNG_BASE64,
+                        "source_type_1": "base64",
+                        "source_type_2": "base64",
+                        "detail": "high",
+                    },
+                )
+            )
+            assert result.content[0].text == mock_response
