@@ -225,6 +225,73 @@ def create_app() -> FastMCP:
         except Exception as e:
             return f"Error: {e}"
 
+    @mcp.tool()
+    def compare_images(
+        image_source_1: str,
+        image_source_2: str,
+        source_type_1: str = "auto",
+        source_type_2: str = "auto",
+        detail: str = "auto",
+        image_format_1: str = "png",
+        image_format_2: str = "png",
+    ) -> str:
+        """Compare two images and analyze their differences across multiple dimensions.
+
+        Args:
+            image_source_1: First image source - can be:
+                - Image reference like "[Image 1]" (from OpenCode paste)
+                - Local file path
+                - Base64 encoded string
+            image_source_2: Second image source - can be:
+                - Image reference like "[Image 2]" (from OpenCode paste)
+                - Local file path
+                - Base64 encoded string
+            source_type_1: Source type for first image:
+                - "auto": Auto-detect source type (recommended)
+                - "path": Treat as file path
+                - "base64": Treat as base64 string
+            source_type_2: Source type for second image:
+                - "auto": Auto-detect source type (recommended)
+                - "path": Treat as file path
+                - "base64": Treat as base64 string
+            detail: Detail level for image analysis ("low", "high", "auto")
+            image_format_1: Image format for first base64 image (default "png")
+            image_format_2: Image format for second base64 image (default "png")
+        
+        Returns:
+            Structured comparison analysis or error message starting with "Error: "
+        """
+        try:
+            mime_1, b64_1 = _load_image(image_source_1, source_type_1, image_format_1)
+            mime_2, b64_2 = _load_image(image_source_2, source_type_2, image_format_2)
+            
+            messages = [
+                {"role": "system", "content": COMPARE_SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_1};base64,{b64_1}",
+                                "detail": detail,
+                            },
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_2};base64,{b64_2}",
+                                "detail": detail,
+                            },
+                        },
+                        {"type": "text", "text": "请对比这两张图片"},
+                    ],
+                },
+            ]
+            return vision.call_model(messages)
+        except Exception as e:
+            return f"Error: {e}"
+
     return mcp
 
 
