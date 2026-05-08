@@ -71,15 +71,51 @@ class VisionClient:
             timeout=config.timeout,
         )
 
-    def call_model(self, messages: list[dict]) -> str:
-        response = self._client.chat.completions.create(
-            model=self._config.model_name,
-            messages=messages,
-            max_tokens=self._config.max_tokens,
-        )
-        if not response.choices:
-            raise ValueError("Model returned empty response")
-        content = response.choices[0].message.content
-        if content is None:
-            raise ValueError("Model returned null content")
-        return content
+    def call_model(self, messages: list[dict]) -> str | APIError:
+        try:
+            response = self._client.chat.completions.create(
+                model=self._config.model_name,
+                messages=messages,
+                max_tokens=self._config.max_tokens,
+            )
+            if not response.choices:
+                return APIError(
+                    status_code=None,
+                    error_message="Model returned empty response",
+                    error_type="server_error",
+                    suggestion="API返回空响应，请稍后重试"
+                )
+            content = response.choices[0].message.content
+            if content is None:
+                return APIError(
+                    status_code=None,
+                    error_message="Model returned null content",
+                    error_type="server_error",
+                    suggestion="API返回空内容，请稍后重试"
+                )
+            return content
+        except APIStatusError as e:
+            error_info = _get_error_info(e.status_code, str(e))
+            return APIError(**error_info)
+        except OpenAI_APIError as e:
+            return APIError(
+                status_code=None,
+                error_message=str(e),
+                error_type="api_error",
+                suggestion="API调用失败，请检查配置或稍后重试"
+            )
+        except Exception as e:
+            error_message = str(e).lower()
+            if "connection" in error_message or "timeout" in error_message:
+                return APIError(
+                    status_code=None,
+                    error_message=str(e),
+                    error_type="network_error",
+                    suggestion="网络连接失败，请检查网络或base_url配置"
+                )
+            return APIError(
+                status_code=None,
+                error_message=str(e),
+                error_type="unknown",
+                suggestion="未知错误，请查看错误消息详情"
+            )
