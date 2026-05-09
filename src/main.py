@@ -162,16 +162,6 @@ def create_app() -> FastMCP:
                 image_format=image_format
             )
             
-            image_url = f"data:{mime};base64,{b64}"
-            logger.log_request(
-                tool_name="describe_image",
-                timestamp=datetime.now().isoformat(),
-                image_urls=[image_url],
-                source_type=source_type,
-                detail=detail,
-                image_format=image_format
-            )
-            
             messages = [
                 {"role": "system", "content": DESCRIBE_SYSTEM_PROMPT},
                 {
@@ -237,17 +227,6 @@ def create_app() -> FastMCP:
         try:
             question = question.strip()
             mime, b64 = _load_image(image_source, source_type, image_format)
-            
-            image_url = f"data:{mime};base64,{b64}"
-            logger.log_request(
-                tool_name="ask_image",
-                timestamp=datetime.now().isoformat(),
-                image_urls=[image_url],
-                source_type=source_type,
-                detail=detail,
-                image_format=image_format,
-                question=question
-            )
             
             image_url = f"data:{mime};base64,{b64}"
             logger.log_request(
