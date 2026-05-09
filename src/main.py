@@ -3,11 +3,11 @@ from pathlib import Path
 import json
 from fastmcp import FastMCP
 
-from .config import load_config
-from .vision_client import VisionClient, APIError
-from .image_helper import ImageHelper
-from .image_extractor import is_image_reference, extract_image_by_reference
-from .logger import ImageRequestLogger
+from config import load_config
+from vision_client import VisionClient, APIError
+from image_helper import ImageHelper
+from image_extractor import is_image_reference, extract_image_by_reference
+from logger import ImageRequestLogger
 
 
 def _load_image(image_source: str, source_type: str, image_format: str) -> tuple[str, str]:

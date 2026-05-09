@@ -53,8 +53,6 @@ def test_ask_image_error_api_failure():
                 )
             )
             text = result.content[0].text
-            assert text == "Error: API connection failed"
-=======
             error_dict = json.loads(text)
             assert error_dict["error_type"] == "local_error"
             assert error_dict["status_code"] is None
@@ -150,7 +148,6 @@ def test_describe_image_returns_string_on_success():
     assert not text.startswith("{") or "这是一张测试图片的描述" in text
     if not text.startswith("{"):
         assert text == "这是一张测试图片的描述"
-=======
 
 
 def test_ask_image_returns_json_on_api_error():
