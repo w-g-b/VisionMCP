@@ -3,6 +3,14 @@ from tempfile import TemporaryDirectory
 from datetime import datetime
 
 
+def test_logger_default_log_dir():
+    """Test that default log_dir is project root"""
+    from src.logger import ImageRequestLogger, PROJECT_ROOT
+    
+    logger = ImageRequestLogger(enabled=True)
+    assert logger.log_dir == PROJECT_ROOT / "log"
+
+
 def test_logger_disabled():
     """Test that disabled logger does not create files"""
     from src.logger import ImageRequestLogger

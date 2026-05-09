@@ -2,10 +2,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+PROJECT_ROOT = Path(__file__).parent.parent
+
 
 class ImageRequestLogger:
-    def __init__(self, enabled: bool = False, log_dir: str = "log"):
+    def __init__(self, enabled: bool = False, log_dir: str | None = None):
         self.enabled = enabled
+        if log_dir is None:
+            log_dir = PROJECT_ROOT / "log"
         self.log_dir = Path(log_dir)
     
     def log_request(
