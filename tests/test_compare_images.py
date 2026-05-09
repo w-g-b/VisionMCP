@@ -93,6 +93,7 @@ def test_compare_images_success():
 
 
 def test_compare_images_error_image1_not_found():
+    import json
     config = Config(model=ModelConfig(api_key="sk-test"))
     mock_vision_client = MagicMock()
     
@@ -112,11 +113,14 @@ def test_compare_images_error_image1_not_found():
                 )
             )
             text = result.content[0].text
-            assert text.startswith("Error:")
-            assert "not found" in text.lower() or "No such file" in text
+            error_dict = json.loads(text)
+            assert error_dict["error_type"] == "local_error"
+            assert error_dict["status_code"] is None
+            assert "not found" in error_dict["error_message"].lower()
 
 
 def test_compare_images_error_image2_not_found():
+    import json
     config = Config(model=ModelConfig(api_key="sk-test"))
     mock_vision_client = MagicMock()
     
@@ -136,11 +140,14 @@ def test_compare_images_error_image2_not_found():
                 )
             )
             text = result.content[0].text
-            assert text.startswith("Error:")
-            assert "not found" in text.lower() or "No such file" in text
+            error_dict = json.loads(text)
+            assert error_dict["error_type"] == "local_error"
+            assert error_dict["status_code"] is None
+            assert "not found" in error_dict["error_message"].lower()
 
 
 def test_compare_images_error_api_failure():
+    import json
     config = Config(model=ModelConfig(api_key="sk-test"))
     mock_vision_client = MagicMock()
     mock_vision_client.call_model.side_effect = Exception("API connection failed")
@@ -161,7 +168,10 @@ def test_compare_images_error_api_failure():
                 )
             )
             text = result.content[0].text
-            assert text == "Error: API connection failed"
+            error_dict = json.loads(text)
+            assert error_dict["error_type"] == "local_error"
+            assert error_dict["status_code"] is None
+            assert "API connection failed" in error_dict["error_message"]
 
 
 def test_compare_images_auto_detection():
@@ -226,3 +236,103 @@ def test_compare_images_different_detail_levels():
                 )
             )
             assert result.content[0].text == mock_response
+
+
+def test_compare_images_returns_json_on_api_error():
+    """测试compare_images API错误返回JSON"""
+    import json
+    from pathlib import Path
+    from src.vision_client import APIError
+    
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    
+    test_image_path = Path(__file__).parent / "fixtures" / "test.png"
+    
+    api_error = APIError(
+        status_code=429,
+        error_message="Error code: 429 - rate limit exceeded",
+        error_type="rate_limit",
+        suggestion="请求频率超限，请稍后重试"
+    )
+    
+    mock_vision_client = MagicMock()
+    mock_vision_client.call_model.return_value = api_error
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": str(test_image_path),
+                        "image_source_2": str(test_image_path)
+                    }
+                )
+            )
+    
+    text = result.content[0].text
+    error_dict = json.loads(text)
+    assert error_dict["status_code"] == 429
+    assert error_dict["error_type"] == "rate_limit"
+
+
+def test_compare_images_returns_json_on_local_error():
+    """测试compare_images本地错误返回JSON"""
+    import json
+    
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    
+    with patch("src.main.load_config", return_value=config):
+        mcp = create_app()
+        
+        result = asyncio.run(
+            mcp.call_tool(
+                "compare_images",
+                {
+                    "image_source_1": "/nonexistent1.png",
+                    "image_source_2": "/nonexistent2.png",
+                    "source_type_1": "path",
+                    "source_type_2": "path"
+                }
+            )
+        )
+    
+    text = result.content[0].text
+    error_dict = json.loads(text)
+    assert error_dict["status_code"] is None
+    assert error_dict["error_type"] == "local_error"
+
+
+def test_compare_images_returns_string_on_success():
+    """测试compare_images成功返回字符串"""
+    import json
+    from pathlib import Path
+    
+    config = Config(model=ModelConfig(api_key="sk-test"))
+    
+    test_image_path = Path(__file__).parent / "fixtures" / "test.png"
+    
+    mock_vision_client = MagicMock()
+    mock_vision_client.call_model.return_value = "两张图片非常相似"
+    
+    with patch("src.main.load_config", return_value=config):
+        with patch("src.main.VisionClient", return_value=mock_vision_client):
+            mcp = create_app()
+            
+            result = asyncio.run(
+                mcp.call_tool(
+                    "compare_images",
+                    {
+                        "image_source_1": str(test_image_path),
+                        "image_source_2": str(test_image_path)
+                    }
+                )
+            )
+    
+    text = result.content[0].text
+    assert isinstance(text, str)
+    assert not text.startswith("{") or "两张图片非常相似" in text
+    if not text.startswith("{"):
+        assert text == "两张图片非常相似"
